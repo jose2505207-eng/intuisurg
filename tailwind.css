@@ -52,9 +52,9 @@
   --surface-overlay: rgba(33, 33, 33, 0.08);
   --x00-on-surface-high-emphasis: rgba(0, 0, 0, 0.87);
   --x00-on-surface-medium-emphasis: rgba(0, 0, 0, 0.6);
-  --x01-primary500: rgba(91, 127, 166, 1);
-  --x01-primary600: rgba(75, 107, 146, 1);
-  --x02-secondary200: rgba(3, 218, 197, 1);
+  --x01-primary500: rgba(37, 99, 235, 1);
+  --x01-primary600: rgba(29, 78, 216, 1);
+  --x02-secondary200: rgba(59, 130, 246, 1);
   --x03-on-primary-high-emphasis: rgba(255, 255, 255, 1);
   --x03-on-primary-medium-emphasis: rgba(255, 255, 255, 0.74);
 }

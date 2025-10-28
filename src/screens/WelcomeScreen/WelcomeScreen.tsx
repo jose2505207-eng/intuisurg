@@ -139,7 +139,7 @@ export function WelcomeScreen({ onWorkOrderScanned }: WelcomeScreenProps) {
               </svg>
             </div>
             <h1 className="font-headline-6 text-[length:var(--headline-6-font-size)] font-[number:var(--headline-6-font-weight)] tracking-[var(--headline-6-letter-spacing)] leading-[var(--headline-6-line-height)] text-x00-on-surface-high-emphasis">
-              Manufacturing Testing
+              Debug Panel
             </h1>
             <p className="font-body-2 text-[length:var(--body-2-font-size)] tracking-[var(--body-2-letter-spacing)] leading-[var(--body-2-line-height)] text-x00-on-surface-medium-emphasis">
               Scan or enter work order to begin testing process
