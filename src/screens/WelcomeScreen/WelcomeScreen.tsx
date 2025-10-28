@@ -22,17 +22,22 @@ export function WelcomeScreen({ onWorkOrderScanned }: WelcomeScreenProps) {
     setError('');
 
     try {
+      console.log('Checking for existing work order:', orderNumber.trim());
       const { data: existingOrder, error: fetchError } = await supabase
         .from('work_orders')
         .select('*')
         .eq('order_number', orderNumber.trim())
         .maybeSingle();
 
-      if (fetchError) throw fetchError;
+      if (fetchError) {
+        console.error('Error fetching work order:', fetchError);
+        throw new Error(`Database error: ${fetchError.message}`);
+      }
 
       let workOrder = existingOrder;
 
       if (!workOrder) {
+        console.log('Creating new work order:', orderNumber.trim());
         const { data: newOrder, error: insertError } = await supabase
           .from('work_orders')
           .insert({
@@ -43,41 +48,74 @@ export function WelcomeScreen({ onWorkOrderScanned }: WelcomeScreenProps) {
           .select()
           .single();
 
-        if (insertError) throw insertError;
+        if (insertError) {
+          console.error('Error creating work order:', insertError);
+          throw new Error(`Failed to create work order: ${insertError.message}`);
+        }
         workOrder = newOrder;
+        console.log('Work order created successfully:', workOrder.id);
 
-        const { data: technicians } = await supabase
+        console.log('Fetching technicians...');
+        const { data: technicians, error: techError } = await supabase
           .from('technicians')
           .select('*')
           .limit(5);
 
-        if (technicians && technicians.length > 0) {
-          const bomComponents = generateBOMComponents(workOrder.id);
-          await supabase.from('bill_of_materials').insert(bomComponents);
-
-          const operations = [
-            { name: 'Initial Component Inspection', order: 1, technicianIndex: 0 },
-            { name: 'PCB Assembly', order: 2, technicianIndex: 1 },
-            { name: 'Wire Harness Installation', order: 3, technicianIndex: 2 },
-            { name: 'Firmware Programming', order: 4, technicianIndex: 3 },
-            { name: 'Final Quality Inspection', order: 5, technicianIndex: 0 }
-          ];
-
-          const signOffOperations = operations.map(op => ({
-            work_order_id: workOrder.id,
-            technician_id: technicians[op.technicianIndex % technicians.length].id,
-            operation_name: op.name,
-            operation_order: op.order,
-            completed_at: new Date(Date.now() - (5 - op.order) * 3600000).toISOString()
-          }));
-
-          await supabase.from('sign_off_operations').insert(signOffOperations);
+        if (techError) {
+          console.error('Error fetching technicians:', techError);
+          throw new Error(`Failed to fetch technicians: ${techError.message}`);
         }
+
+        if (!technicians || technicians.length === 0) {
+          console.error('No technicians found in database');
+          throw new Error('No technicians available. Please contact system administrator.');
+        }
+
+        console.log(`Found ${technicians.length} technicians`);
+
+        console.log('Generating BOM components...');
+        const bomComponents = generateBOMComponents(workOrder.id);
+        const { error: bomError } = await supabase.from('bill_of_materials').insert(bomComponents);
+
+        if (bomError) {
+          console.error('Error inserting BOM:', bomError);
+          throw new Error(`Failed to create BOM: ${bomError.message}`);
+        }
+        console.log('BOM created successfully');
+
+        console.log('Creating sign-off operations...');
+        const operations = [
+          { name: 'Initial Component Inspection', order: 1, technicianIndex: 0 },
+          { name: 'PCB Assembly', order: 2, technicianIndex: 1 },
+          { name: 'Wire Harness Installation', order: 3, technicianIndex: 2 },
+          { name: 'Firmware Programming', order: 4, technicianIndex: 3 },
+          { name: 'Final Quality Inspection', order: 5, technicianIndex: 0 }
+        ];
+
+        const signOffOperations = operations.map(op => ({
+          work_order_id: workOrder.id,
+          technician_id: technicians[op.technicianIndex % technicians.length].id,
+          operation_name: op.name,
+          operation_order: op.order,
+          completed_at: new Date(Date.now() - (5 - op.order) * 3600000).toISOString()
+        }));
+
+        const { error: signOffError } = await supabase.from('sign_off_operations').insert(signOffOperations);
+
+        if (signOffError) {
+          console.error('Error creating sign-offs:', signOffError);
+          throw new Error(`Failed to create sign-offs: ${signOffError.message}`);
+        }
+        console.log('Sign-off operations created successfully');
+      } else {
+        console.log('Work order already exists:', workOrder.id);
       }
 
+      console.log('Processing complete, redirecting to setup instructions');
       onWorkOrderScanned(workOrder.id, workOrder.order_number);
     } catch (err) {
-      setError('Failed to process work order. Please try again.');
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      setError(errorMessage);
       console.error('Error processing work order:', err);
     } finally {
       setIsLoading(false);
