@@ -9,7 +9,8 @@ import { FailureAnalysisScreen } from './screens/FailureAnalysisScreen';
 import { FinalDocumentationScreen } from './screens/FinalDocumentationScreen';
 import { IntuitiveAssistant } from './components/IntuitiveAssistant';
 import { ReworkTestingAnimation } from './components/ReworkTestingAnimation';
-import { TestResult } from './types/database';
+import { FeedbackModal } from './components/FeedbackModal';
+import { TestResult, ProcessLogDatabase, ManufacturingProcessInstruction } from './types/database';
 
 type AppScreen =
   | 'welcome'
@@ -33,6 +34,9 @@ export default function App() {
   const [selectedReworkMpiId, setSelectedReworkMpiId] = useState<string>('');
   const [previousScreen, setPreviousScreen] = useState<AppScreen>('testing');
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+  const [selectedProcessLog, setSelectedProcessLog] = useState<ProcessLogDatabase | null>(null);
+  const [selectedMpiSteps, setSelectedMpiSteps] = useState<ManufacturingProcessInstruction[]>([]);
 
   // Test state management
   const [testProgress, setTestProgress] = useState(0);
@@ -92,8 +96,10 @@ export default function App() {
     setCurrentScreen(previousScreen);
   };
 
-  const handleSelectRework = (mpiId: string) => {
+  const handleSelectRework = (mpiId: string, processLog?: ProcessLogDatabase, mpiSteps?: ManufacturingProcessInstruction[]) => {
     setSelectedReworkMpiId(mpiId);
+    if (processLog) setSelectedProcessLog(processLog);
+    if (mpiSteps) setSelectedMpiSteps(mpiSteps);
     setCurrentScreen('rework-instructions');
   };
 
@@ -108,10 +114,19 @@ export default function App() {
   const handleRetestComplete = (result: TestResult) => {
     setTestResult(result);
     if (result.test_status === 'passed') {
-      setCurrentScreen('success');
+      if (selectedProcessLog && selectedMpiSteps.length > 0) {
+        setIsFeedbackModalOpen(true);
+      } else {
+        setCurrentScreen('success');
+      }
     } else {
       setCurrentScreen('failure-analysis');
     }
+  };
+
+  const handleFeedbackComplete = () => {
+    setIsFeedbackModalOpen(false);
+    setCurrentScreen('success');
   };
 
   const handleStartOver = () => {
@@ -124,6 +139,8 @@ export default function App() {
     setTestStatus('idle');
     setIsRetesting(false);
     setHasSeenFailureAnalysis(false);
+    setSelectedProcessLog(null);
+    setSelectedMpiSteps([]);
   };
 
   // Test progress effect - runs in background
@@ -326,6 +343,19 @@ export default function App() {
           onClose={() => setIsAssistantOpen(false)}
           workOrderId={workOrderId}
           orderNumber={orderNumber}
+        />
+      )}
+
+      {isFeedbackModalOpen && testResult && selectedProcessLog && (
+        <FeedbackModal
+          isOpen={isFeedbackModalOpen}
+          onClose={handleFeedbackComplete}
+          workOrderId={workOrderId}
+          orderNumber={orderNumber}
+          processLogDatabase={selectedProcessLog}
+          correctiveMpi={selectedMpiSteps}
+          testResultId={testResult.id}
+          wasSuccessful={testResult.test_status === 'passed'}
         />
       )}
     </div>

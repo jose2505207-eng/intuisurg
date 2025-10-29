@@ -91,6 +91,10 @@ export interface ProcessLogDatabase {
   corrective_mpi_id: string;
   occurrence_count: number;
   success_rate: number;
+  last_occurrence_date: string;
+  average_feedback_rating: number;
+  total_feedback_count: number;
+  positive_feedback_count: number;
   created_at: string;
   updated_at: string;
 }
@@ -99,4 +103,19 @@ export interface FailureAnalysisResult {
   pl: ProcessLogDatabase;
   similarity_score: number;
   mpi_steps: ManufacturingProcessInstruction[];
+  recency_score: number;
+  days_since_last_occurrence: number;
+}
+
+export interface ReworkFeedback {
+  id: string;
+  work_order_id: string;
+  process_log_database_id: string;
+  corrective_mpi_id: string;
+  test_result_id: string;
+  rating: 1 | 2 | 3;
+  was_successful: boolean;
+  comments: string | null;
+  technician_name: string | null;
+  created_at: string;
 }

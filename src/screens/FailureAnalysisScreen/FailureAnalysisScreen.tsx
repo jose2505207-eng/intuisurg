@@ -8,7 +8,7 @@ interface FailureAnalysisScreenProps {
   workOrderId: string;
   orderNumber: string;
   testResult: TestResult;
-  onSelectRework: (mpiId: string) => void;
+  onSelectRework: (mpiId: string, processLog?: ProcessLogDatabase, mpiSteps?: ManufacturingProcessInstruction[]) => void;
   onViewBOM: () => void;
   onViewSignOff: () => void;
   onViewProcessLogs: () => void;
@@ -80,18 +80,30 @@ export function FailureAnalysisScreen({
             .order('step_number', { ascending: true });
 
           const similarityScore = calculateSimilarity(testResult, pl);
+          const { recencyScore, daysSince } = calculateRecencyScore(pl);
 
           resultsWithMPIs.push({
             pl,
             similarity_score: similarityScore,
-            mpi_steps: allSteps || []
+            mpi_steps: allSteps || [],
+            recency_score: recencyScore,
+            days_since_last_occurrence: daysSince
           });
         }
       }
 
       resultsWithMPIs.sort((a, b) => {
-        const scoreA = (a.similarity_score * 0.4) + (a.pl.success_rate * 0.6);
-        const scoreB = (b.similarity_score * 0.4) + (b.pl.success_rate * 0.6);
+        const feedbackWeightA = Math.min(a.pl.average_feedback_rating / 3, 1);
+        const feedbackWeightB = Math.min(b.pl.average_feedback_rating / 3, 1);
+
+        const scoreA = (a.similarity_score * 0.3) +
+                       (a.pl.success_rate * 0.4) +
+                       (a.recency_score * 0.15) +
+                       (feedbackWeightA * 100 * 0.15);
+        const scoreB = (b.similarity_score * 0.3) +
+                       (b.pl.success_rate * 0.4) +
+                       (b.recency_score * 0.15) +
+                       (feedbackWeightB * 100 * 0.15);
         return scoreB - scoreA;
       });
 
@@ -123,6 +135,47 @@ export function FailureAnalysisScreen({
     }
 
     return Math.min(score, 100);
+  };
+
+  const calculateRecencyScore = (pl: ProcessLogDatabase): { recencyScore: number; daysSince: number } => {
+    const now = new Date();
+    const lastOccurrence = new Date(pl.last_occurrence_date);
+    const daysSince = Math.floor((now.getTime() - lastOccurrence.getTime()) / (1000 * 60 * 60 * 24));
+
+    let recencyScore = 100;
+    if (daysSince <= 7) {
+      recencyScore = 100;
+    } else if (daysSince <= 30) {
+      recencyScore = 80;
+    } else if (daysSince <= 90) {
+      recencyScore = 60;
+    } else if (daysSince <= 180) {
+      recencyScore = 40;
+    } else if (daysSince <= 365) {
+      recencyScore = 20;
+    } else {
+      recencyScore = 10;
+    }
+
+    return { recencyScore, daysSince };
+  };
+
+  const formatRecencyText = (days: number): { text: string; color: string } => {
+    if (days === 0) {
+      return { text: 'Today', color: 'text-red-600 bg-red-100' };
+    } else if (days === 1) {
+      return { text: 'Yesterday', color: 'text-red-600 bg-red-100' };
+    } else if (days <= 7) {
+      return { text: `${days} days ago`, color: 'text-red-600 bg-red-100' };
+    } else if (days <= 30) {
+      return { text: `${Math.floor(days / 7)} weeks ago`, color: 'text-orange-600 bg-orange-100' };
+    } else if (days <= 90) {
+      return { text: `${Math.floor(days / 30)} months ago`, color: 'text-yellow-600 bg-yellow-100' };
+    } else if (days <= 365) {
+      return { text: `${Math.floor(days / 30)} months ago`, color: 'text-slate-600 bg-slate-100' };
+    } else {
+      return { text: `${Math.floor(days / 365)} years ago`, color: 'text-slate-500 bg-slate-50' };
+    }
   };
 
 
@@ -216,7 +269,7 @@ export function FailureAnalysisScreen({
 
               <div className="space-y-4">
                 {analysisResults.map((result, index) => {
-                  const combinedProbability = (result.similarity_score * 0.4) + (result.pl.success_rate * 0.6);
+                  const recencyInfo = formatRecencyText(result.days_since_last_occurrence);
 
                   return (
                     <div
@@ -228,17 +281,22 @@ export function FailureAnalysisScreen({
                           <div className="flex items-center justify-center w-12 h-12 bg-x02-secondary200 bg-opacity-10 text-x01-primary500 rounded-full font-headline-6 font-[number:var(--headline-6-font-weight)] text-lg flex-shrink-0">
                             #{index + 1}
                           </div>
-                          <div>
-                            <h3 className="font-headline-6 text-[20px] font-[number:var(--headline-6-font-weight)] tracking-[var(--headline-6-letter-spacing)] leading-[var(--headline-6-line-height)] text-x00-on-surface-high-emphasis mb-1">
-                              {result.pl.failure_description}
-                            </h3>
+                          <div className="flex-1">
+                            <div className="flex items-start justify-between gap-3 mb-2">
+                              <h3 className="font-headline-6 text-[20px] font-[number:var(--headline-6-font-weight)] tracking-[var(--headline-6-letter-spacing)] leading-[var(--headline-6-line-height)] text-x00-on-surface-high-emphasis">
+                                {result.pl.failure_description}
+                              </h3>
+                              <span className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${recencyInfo.color}`}>
+                                {recencyInfo.text}
+                              </span>
+                            </div>
                             <p className="font-body-2 text-[length:var(--body-2-font-size)] tracking-[var(--body-2-letter-spacing)] leading-[var(--body-2-line-height)] text-x00-on-surface-medium-emphasis mb-2">
                               Process Log: <span className="font-mono bg-gray-100 px-2 py-0.5 rounded text-x00-on-surface-high-emphasis">{result.pl.pl_number}</span>
                             </p>
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
                           <div className="bg-surface p-3 rounded border border-gray-300 shadow-04-dp">
                             <p className="font-body-2 text-[11px] tracking-[var(--body-2-letter-spacing)] leading-[var(--body-2-line-height)] text-x00-on-surface-medium-emphasis mb-1">Historical Occurrences</p>
                             <p className="font-headline-6 text-[22px] font-[number:var(--headline-6-font-weight)] text-x00-on-surface-high-emphasis">{result.pl.occurrence_count}</p>
@@ -251,6 +309,33 @@ export function FailureAnalysisScreen({
                             <p className="font-body-2 text-[11px] tracking-[var(--body-2-letter-spacing)] leading-[var(--body-2-line-height)] text-x00-on-surface-medium-emphasis mb-1">Match Score</p>
                             <p className="font-headline-6 text-[22px] font-[number:var(--headline-6-font-weight)] text-x01-primary500">{result.similarity_score}%</p>
                           </div>
+                          <div className="bg-surface p-3 rounded border border-gray-300 shadow-04-dp">
+                            <div className="flex items-center gap-1 mb-1">
+                              <p className="font-body-2 text-[11px] tracking-[var(--body-2-letter-spacing)] leading-[var(--body-2-line-height)] text-x00-on-surface-medium-emphasis">AI Rating</p>
+                              {result.pl.total_feedback_count > 0 && (
+                                <span className="text-[10px] text-slate-400">({result.pl.total_feedback_count})</span>
+                              )}
+                            </div>
+                            {result.pl.total_feedback_count > 0 ? (
+                              <div className="flex items-center gap-1">
+                                <p className="font-headline-6 text-[22px] font-[number:var(--headline-6-font-weight)] text-x00-on-surface-high-emphasis">{result.pl.average_feedback_rating.toFixed(1)}</p>
+                                <div className="flex">
+                                  {[1, 2, 3].map((star) => (
+                                    <svg
+                                      key={star}
+                                      className={`w-4 h-4 ${star <= Math.round(result.pl.average_feedback_rating) ? 'text-yellow-400' : 'text-gray-300'}`}
+                                      fill="currentColor"
+                                      viewBox="0 0 20 20"
+                                    >
+                                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                    </svg>
+                                  ))}
+                                </div>
+                              </div>
+                            ) : (
+                              <p className="font-body-2 text-[14px] text-slate-400">No ratings yet</p>
+                            )}
+                          </div>
                         </div>
 
                         <div className="mb-4">
@@ -261,7 +346,7 @@ export function FailureAnalysisScreen({
                         </div>
 
                         <Button
-                          onClick={() => onSelectRework(result.pl.corrective_mpi_id)}
+                          onClick={() => onSelectRework(result.pl.corrective_mpi_id, result.pl, result.mpi_steps)}
                           className="w-full font-button text-[length:var(--button-font-size)] font-[number:var(--button-font-weight)] tracking-[var(--button-letter-spacing)] bg-x01-primary500 hover:bg-x01-primary600 text-x03-on-primary-high-emphasis shadow-04-dp"
                         >
                           VIEW CORRECTIVE INSTRUCTIONS ({result.mpi_steps.length} STEPS)
