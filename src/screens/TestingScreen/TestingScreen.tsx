@@ -168,9 +168,8 @@ export function TestingScreen({
           {testStatus === 'running' && (
             <div className="space-y-6">
               <div className="space-y-3">
-                <div className="flex justify-between font-body-2 text-[length:var(--body-2-font-size)] font-medium tracking-[var(--body-2-letter-spacing)] leading-[var(--body-2-line-height)]">
+                <div className="font-body-2 text-[length:var(--body-2-font-size)] font-medium tracking-[var(--body-2-letter-spacing)] leading-[var(--body-2-line-height)]">
                   <span className="text-x00-on-surface-high-emphasis">Test Progress</span>
-                  <span className="text-x01-primary500">{testProgress}%</span>
                 </div>
                 <div className="relative w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                   <div
