@@ -113,12 +113,6 @@ export function FailureAnalysisScreen({
     return Math.min(score, 100);
   };
 
-  const getProbabilityColor = (probability: number) => {
-    if (probability >= 85) return 'text-green-600 bg-green-100';
-    if (probability >= 70) return 'text-blue-600 bg-blue-100';
-    if (probability >= 50) return 'text-yellow-600 bg-yellow-100';
-    return 'text-orange-600 bg-orange-100';
-  };
 
   if (isAnalyzing) {
     return (
@@ -218,22 +212,17 @@ export function FailureAnalysisScreen({
                       className="border border-gray-300 rounded-lg overflow-hidden shadow-04-dp hover:shadow-08-dp transition-all"
                     >
                       <div className="bg-surface p-6">
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex items-start gap-4">
-                            <div className="flex items-center justify-center w-12 h-12 bg-x02-secondary200 bg-opacity-10 text-x01-primary500 rounded-full font-headline-6 font-[number:var(--headline-6-font-weight)] text-lg flex-shrink-0">
-                              #{index + 1}
-                            </div>
-                            <div>
-                              <h3 className="font-headline-6 text-[20px] font-[number:var(--headline-6-font-weight)] tracking-[var(--headline-6-letter-spacing)] leading-[var(--headline-6-line-height)] text-x00-on-surface-high-emphasis mb-1">
-                                {result.pl.failure_description}
-                              </h3>
-                              <p className="font-body-2 text-[length:var(--body-2-font-size)] tracking-[var(--body-2-letter-spacing)] leading-[var(--body-2-line-height)] text-x00-on-surface-medium-emphasis mb-2">
-                                Process Log: <span className="font-mono bg-gray-100 px-2 py-0.5 rounded text-x00-on-surface-high-emphasis">{result.pl.pl_number}</span>
-                              </p>
-                            </div>
+                        <div className="flex items-start gap-4 mb-4">
+                          <div className="flex items-center justify-center w-12 h-12 bg-x02-secondary200 bg-opacity-10 text-x01-primary500 rounded-full font-headline-6 font-[number:var(--headline-6-font-weight)] text-lg flex-shrink-0">
+                            #{index + 1}
                           </div>
-                          <div className={`px-4 py-2 rounded-full font-semibold ${getProbabilityColor(combinedProbability)}`}>
-                            {combinedProbability.toFixed(1)}%
+                          <div>
+                            <h3 className="font-headline-6 text-[20px] font-[number:var(--headline-6-font-weight)] tracking-[var(--headline-6-letter-spacing)] leading-[var(--headline-6-line-height)] text-x00-on-surface-high-emphasis mb-1">
+                              {result.pl.failure_description}
+                            </h3>
+                            <p className="font-body-2 text-[length:var(--body-2-font-size)] tracking-[var(--body-2-letter-spacing)] leading-[var(--body-2-line-height)] text-x00-on-surface-medium-emphasis mb-2">
+                              Process Log: <span className="font-mono bg-gray-100 px-2 py-0.5 rounded text-x00-on-surface-high-emphasis">{result.pl.pl_number}</span>
+                            </p>
                           </div>
                         </div>
 
