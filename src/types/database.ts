@@ -25,7 +25,7 @@ export interface ManufacturingProcessInstruction {
 export interface BillOfMaterial {
   id: string;
   work_order_id: string;
-  vendor_denomination: string;
+  component_name: string;
   part_number: string;
   serial_number: string;
   created_at: string;

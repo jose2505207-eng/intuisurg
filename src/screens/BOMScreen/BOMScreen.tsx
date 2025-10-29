@@ -79,7 +79,7 @@ export function BOMScreen({ workOrderId, orderNumber, onClose }: BOMScreenProps)
                       {item.part_number}
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-700 border-b border-slate-200">
-                      {item.vendor_denomination}
+                      {item.component_name}
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-700 border-b border-slate-200">
                       {item.serial_number}

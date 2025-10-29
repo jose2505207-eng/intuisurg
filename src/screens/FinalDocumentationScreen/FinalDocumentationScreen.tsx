@@ -221,7 +221,7 @@ export function FinalDocumentationScreen({ workOrderId, orderNumber, onClose }: 
                       Part Number
                     </th>
                     <th className="px-6 py-3 text-left text-sm font-semibold text-slate-800 uppercase tracking-wider">
-                      Reference Designated
+                      Component Name
                     </th>
                     <th className="px-6 py-3 text-left text-sm font-semibold text-slate-800 uppercase tracking-wider">
                       Tracking ID
@@ -235,7 +235,7 @@ export function FinalDocumentationScreen({ workOrderId, orderNumber, onClose }: 
                         {item.part_number}
                       </td>
                       <td className="px-6 py-4 text-sm text-slate-700">
-                        {item.vendor_denomination}
+                        {item.component_name}
                       </td>
                       <td className="px-6 py-4 text-sm font-mono text-slate-700">
                         {item.serial_number}
