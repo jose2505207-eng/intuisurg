@@ -41,7 +41,7 @@ export const WorkOrderDetailsSection = (): JSX.Element => {
               PART NUMBER
             </TableHead>
             <TableHead className="[font-family:'Inter',Helvetica] font-bold text-[#3c3c3c] text-xs tracking-[0] leading-[normal] h-10 px-3 py-2">
-              REFERENCE DESIGNATED
+              COMPONENT NAME
             </TableHead>
             <TableHead className="[font-family:'Inter',Helvetica] font-bold text-[#3c3c3c] text-xs tracking-[0] leading-[normal] h-10 px-3 py-2">
               TRACKING ID

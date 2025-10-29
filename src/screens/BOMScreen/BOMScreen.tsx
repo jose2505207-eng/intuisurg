@@ -65,7 +65,7 @@ export function BOMScreen({ workOrderId, orderNumber, onClose }: BOMScreenProps)
                     PART NUMBER
                   </th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-slate-800 uppercase tracking-wider border-b border-slate-300">
-                    REFERENCE DESIGNATED
+                    COMPONENT NAME
                   </th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-slate-800 uppercase tracking-wider border-b border-slate-300">
                     TRACKING ID
