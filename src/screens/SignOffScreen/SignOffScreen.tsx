@@ -46,7 +46,7 @@ export function SignOffScreen({ workOrderId, orderNumber, onClose }: SignOffScre
   return (
     <div className="h-screen bg-white flex flex-col">
       <div style={{ backgroundColor: '#5B7FA6' }} className="px-6 py-4 text-white flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-wide">WORK ORDER DETAILS</h1>
+        <h1 className="text-2xl font-bold tracking-wide">SIGN OFF</h1>
         <Button
           onClick={onClose}
           className="bg-white text-slate-800 hover:bg-gray-100 font-medium px-6"
