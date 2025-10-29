@@ -38,6 +38,7 @@ export default function App() {
   const [testProgress, setTestProgress] = useState(0);
   const [testStatus, setTestStatus] = useState<'idle' | 'running' | 'complete'>('idle');
   const [isRetesting, setIsRetesting] = useState(false);
+  const [hasSeenFailureAnalysis, setHasSeenFailureAnalysis] = useState(false);
   const [sensorData, setSensorData] = useState({
     sensor_1: 0,
     sensor_2: 0,
@@ -60,6 +61,7 @@ export default function App() {
   const handleTestComplete = (result: TestResult) => {
     setTestResult(result);
     if (result.test_status === 'failed') {
+      setHasSeenFailureAnalysis(true);
       setCurrentScreen('failure-analysis');
     } else {
       setCurrentScreen('success');
@@ -121,6 +123,7 @@ export default function App() {
     setTestProgress(0);
     setTestStatus('idle');
     setIsRetesting(false);
+    setHasSeenFailureAnalysis(false);
   };
 
   // Test progress effect - runs in background
@@ -238,6 +241,7 @@ export default function App() {
           onViewSignOff={handleViewSignOff}
           onViewProcessLogs={handleViewProcessLogs}
           onOpenAssistant={() => setIsAssistantOpen(true)}
+          showAnalyzingAnimation={!hasSeenFailureAnalysis}
         />
       )}
 

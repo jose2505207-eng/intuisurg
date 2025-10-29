@@ -13,6 +13,7 @@ interface FailureAnalysisScreenProps {
   onViewSignOff: () => void;
   onViewProcessLogs: () => void;
   onOpenAssistant: () => void;
+  showAnalyzingAnimation: boolean;
 }
 
 export function FailureAnalysisScreen({
@@ -23,9 +24,10 @@ export function FailureAnalysisScreen({
   onViewBOM,
   onViewSignOff,
   onViewProcessLogs,
-  onOpenAssistant
+  onOpenAssistant,
+  showAnalyzingAnimation
 }: FailureAnalysisScreenProps) {
-  const [isAnalyzing, setIsAnalyzing] = useState(true);
+  const [isAnalyzing, setIsAnalyzing] = useState(showAnalyzingAnimation);
   const [analysisResults, setAnalysisResults] = useState<FailureAnalysisResult[]>([]);
 
   useEffect(() => {
@@ -33,9 +35,19 @@ export function FailureAnalysisScreen({
   }, [testResult]);
 
   const performAnalysis = async () => {
+    if (!showAnalyzingAnimation) {
+      setIsAnalyzing(false);
+      loadAnalysisData();
+      return;
+    }
+
     setIsAnalyzing(true);
 
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    loadAnalysisData();
+  };
+
+  const loadAnalysisData = async () => {
 
     try {
       if (!testResult.failure_codes || testResult.failure_codes.length === 0) {
