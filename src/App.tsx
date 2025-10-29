@@ -8,6 +8,7 @@ import { ProcessLogsScreen } from './screens/ProcessLogsScreen';
 import { FailureAnalysisScreen } from './screens/FailureAnalysisScreen';
 import { FinalDocumentationScreen } from './screens/FinalDocumentationScreen';
 import { IntuitiveAssistant } from './components/IntuitiveAssistant';
+import { ReworkTestingAnimation } from './components/ReworkTestingAnimation';
 import { TestResult } from './types/database';
 
 type AppScreen =
@@ -19,6 +20,7 @@ type AppScreen =
   | 'process-logs'
   | 'failure-analysis'
   | 'rework-instructions'
+  | 'rework-testing-animation'
   | 'retesting'
   | 'success'
   | 'final-documentation';
@@ -94,6 +96,10 @@ export default function App() {
   };
 
   const handleReworkComplete = () => {
+    setCurrentScreen('rework-testing-animation');
+  };
+
+  const handleReworkTestingAnimationComplete = () => {
     setCurrentScreen('retesting');
   };
 
@@ -126,7 +132,7 @@ export default function App() {
             clearInterval(interval);
             return 100;
           }
-          return prev + 1;
+          return prev + 2;
         });
 
         setSensorData({
@@ -137,7 +143,7 @@ export default function App() {
           pressure: isRetesting ? 95 + Math.random() * 10 : 45 + Math.random() * 10,
           voltage: isRetesting ? 220 + Math.random() * 15 : 245 + Math.random() * 20
         });
-      }, 200);
+      }, 100);
 
       return () => clearInterval(interval);
     }
@@ -248,6 +254,10 @@ export default function App() {
           onViewProcessLogs={handleViewProcessLogs}
           onOpenAssistant={() => setIsAssistantOpen(true)}
         />
+      )}
+
+      {currentScreen === 'rework-testing-animation' && (
+        <ReworkTestingAnimation onComplete={handleReworkTestingAnimationComplete} />
       )}
 
       {currentScreen === 'retesting' && (

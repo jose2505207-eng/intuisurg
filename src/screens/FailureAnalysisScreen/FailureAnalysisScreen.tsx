@@ -35,7 +35,7 @@ export function FailureAnalysisScreen({
   const performAnalysis = async () => {
     setIsAnalyzing(true);
 
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 1500));
 
     try {
       if (!testResult.failure_codes || testResult.failure_codes.length === 0) {
